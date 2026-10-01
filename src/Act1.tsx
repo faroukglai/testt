@@ -1,7 +1,7 @@
 import React from 'react';
 import {Easing, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {AbsoluteFill} from 'remotion';
-import {C, EASE, FPS, HEIGHT, SCENES, TYPE, WIDTH} from './theme';
+import {C, EASE, FPS, HEIGHT, SCENES, TOOL_PHRASES, TYPE, WIDTH} from './theme';
 import {BlurWord, ClipReveal, GlassBubble, Grain, Haze, Sparkle, fullFrame} from './FX';
 
 const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
@@ -35,7 +35,7 @@ const IntroScene: React.FC = () => {
         return <div key={i} style={{position:'absolute',left:'50%',top:'42%',width:10,height:10,borderRadius:'50%',background:i===1?C.mint:C.mintLight,boxShadow:'0 0 18px #3BFFC7',transform:`translate(${x}px,${y}px)`,opacity:.5+entrance*.5}}/>;
       })}
       <div style={{position:'absolute',left:0,right:0,top:'16%',display:'flex',justifyContent:'center',textAlign:'center'}}>
-        <BlurWord text={title} startFrame={0} durationInFrames={170} staggerFrames={4} fontSize={TYPE.headline} fontWeight={TYPE.weightSemibold} readingFrames={130} style={{maxWidth:1500,justifyContent:'center'}}/>
+        <BlurWord text={title} startFrame={0} durationInFrames={120} staggerFrames={4} fontSize={TYPE.headline} fontWeight={TYPE.weightSemibold} readingFrames={70} style={{maxWidth:1500,justifyContent:'center'}}/>
       </div>
       <div style={{position:'absolute',left:'50%',top:'67%',transform:`translate(-50%,-50%) scale(${mix(.94,1,entrance)})`,opacity:entrance*.82,color:C.mintLight,fontFamily:TYPE.family,fontSize:TYPE.orbitCaption,letterSpacing:'-.02em',textShadow:'0 0 24px rgba(59,255,199,.42)',whiteSpace:'nowrap'}}>A better way to run your agency</div>
       <div style={{position:'absolute',left:'50%',top:'42%',width:18,height:18,marginLeft:-9,marginTop:-9,borderRadius:'50%',background:C.mint,boxShadow:'0 0 36px 12px rgba(59,255,199,.42)'}}/>
@@ -74,7 +74,7 @@ const OrbitScene: React.FC = () => {
 
 const CollapseScene: React.FC = () => {
   const frame=useCurrentFrame();
-  const p=smooth(interpolate(frame,[0,50],[0,1],clamp));
+  const p=smooth(interpolate(frame,[0,38],[0,1],clamp));
   return (
     <AbsoluteFill style={{background:`radial-gradient(circle at center, ${C.forest3} 0%, ${C.bg2} 28%, ${C.bg0} 75%)`,overflow:'hidden'}}>
       <Haze intensity={.65}/>
@@ -104,36 +104,25 @@ const Phrase: React.FC<{text:string;start:number;words:number;duration:number}> 
 
 const ToolListScene: React.FC = () => {
   const frame=useCurrentFrame();
-  const phrases=[
-    {text:'Leads and Sales Pipelines',words:4,duration:150},
-    {text:'Projects and Tasks',words:3,duration:130},
-    {text:'Quotes and Invoices',words:3,duration:130},
-    {text:'Documents and File Storage',words:4,duration:150},
-    {text:'Scheduling Meetings',words:2,duration:110},
-    {text:'Email',words:1,duration:90},
-    {text:'Support',words:1,duration:90},
-    {text:'Collect Data',words:2,duration:110},
-    {text:'Team discussions',words:2,duration:170},
-  ];
-  let cursor=0;
-  const positioned=phrases.map((phrase)=>{const start=cursor;cursor+=phrase.duration;return {...phrase,start};});
-  const active=positioned.find((p)=>frame>=p.start&&frame<p.start+p.duration);
-  const local=active?frame-active.start:0;
-  const orbit=frame*.01;
+  // Theme cue values are local to S4; convert once to the parent composition frame.
+  const s4Start=SCENES.s04ToolList.start;
+  const positioned=TOOL_PHRASES.map((phrase)=>({...phrase,start:s4Start+phrase.start}));
+  const active=positioned.find((phrase)=>frame>=phrase.start&&frame<phrase.start+phrase.duration);
+  const orbit=(frame-s4Start)*.01;
   return (
     <AbsoluteFill style={{background:`radial-gradient(ellipse at 50% 50%, ${C.bg3}, ${C.bg1} 56%, ${C.bg0})`,overflow:'hidden'}}>
       <Haze intensity={.5}/>
-      <div style={{position:'absolute',left:'50%',top:'52%',width:590,height:590,border:'1px solid rgba(59,255,199,.16)',borderRadius:'50%',transform:`translate(-50%,-50%) rotate(${frame*.08}deg)`}}/>
-      <div style={{position:'absolute',left:'50%',top:'52%',width:410,height:410,border:'1px solid rgba(131,255,206,.14)',borderRadius:'50%',transform:`translate(-50%,-50%) rotateX(66deg) rotate(${-frame*.1}deg)`}}/>
-      <div style={{position:'absolute',left:'50%',top:'52%',width:190,height:190,transform:`translate(-50%,-50%) rotate(${frame*.15}deg)`,borderRadius:'50%',background:'radial-gradient(circle at 28% 24%,#B0FEDE,#11DE99 28%,#07573B 63%,#001810 100%)',boxShadow:'0 0 90px rgba(17,222,153,.38)'}}/>
+      <div style={{position:'absolute',left:'50%',top:'52%',width:590,height:590,border:'1px solid rgba(59,255,199,.16)',borderRadius:'50%',transform:`translate(-50%,-50%) rotate(${(frame-s4Start)*.08}deg)`}}/>
+      <div style={{position:'absolute',left:'50%',top:'52%',width:410,height:410,border:'1px solid rgba(131,255,206,.14)',borderRadius:'50%',transform:`translate(-50%,-50%) rotateX(66deg) rotate(${-(frame-s4Start)*.1}deg)`}}/>
+      <div style={{position:'absolute',left:'50%',top:'52%',width:190,height:190,transform:`translate(-50%,-50%) rotate(${(frame-s4Start)*.15}deg)`,borderRadius:'50%',background:'radial-gradient(circle at 28% 24%,#B0FEDE,#11DE99 28%,#07573B 63%,#001810 100%)',boxShadow:'0 0 90px rgba(17,222,153,.38)'}}/>
       {Array.from({length:9},(_,i)=>{
         const a=orbit+i*Math.PI*2/9;
         const x=Math.cos(a)*425,y=Math.sin(a)*210;
-        const activeIndex=positioned.indexOf(active as typeof positioned[number]);
+        const activeIndex=active?positioned.indexOf(active):-1;
         const focus=activeIndex===i;
         const appear=focus?1:0.48;
         return <div key={i} style={{position:'absolute',left:'50%',top:'52%',transform:`translate(${x}px,${y}px) scale(${focus?1.08:.78})`,opacity:appear}}>
-          <GlassBubble size={88} label={phrases[i].text} style={{boxShadow:'0 14px 34px rgba(0,0,0,.42),0 0 24px rgba(59,255,199,.24)'}}>
+          <GlassBubble size={88} label={positioned[i]?.text ?? 'Taskip tool'} style={{boxShadow:'0 14px 34px rgba(0,0,0,.42),0 0 24px rgba(59,255,199,.24)'}}>
             <Sparkle size={34} color={focus?C.forest3:C.forest2}/>
           </GlassBubble>
         </div>;
@@ -147,12 +136,11 @@ const ToolListScene: React.FC = () => {
 
 export const Act1: React.FC = () => {
   const frame=useCurrentFrame();
-  const s1=SCENES.s01Intro.duration;
-  const s2=s1+SCENES.s02Orbit.duration;
-  const s3=s2+SCENES.s03Collapse.duration;
-  const s4=s3+SCENES.s04ToolList.duration;
+  const s1=SCENES.s01Intro.end;
+  const s2=SCENES.s02Orbit.end;
+  const s3=SCENES.s03Collapse.end;
+  const s4=SCENES.s04ToolList.end;
   const scene = frame < s1 ? 0 : frame < s2 ? 1 : frame < s3 ? 2 : 3;
-  const localFrame = scene===0?frame:scene===1?frame-s1:scene===2?frame-s2:frame-s3;
   const content = scene===0?<IntroScene/>:scene===1?<OrbitScene/>:scene===2?<CollapseScene/>:<ToolListScene/>;
   const transitionStart = scene===0?s1-20:scene===1?s2-18:scene===2?s3-16:s4-1;
   const transitionDuration = scene===0?24:scene===1?24:scene===2?24:1;
