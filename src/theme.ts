@@ -154,8 +154,8 @@ type SceneSpec = {
 };
 
 const specs: SceneSpec[] = [
-  { id: 's01Intro', name: 'S1 — Intro headline', duration: 170, readingWords: 6 },
-  { id: 's02Orbit', name: 'S2 — Orbit system', duration: 150, readingWords: 5 },
+  { id: 's01Intro', name: 'S1 — Intro headline', duration: 170, readingWords: 5 },
+  { id: 's02Orbit', name: 'S2 — Orbit system', duration: 150, readingWords: 4 },
   { id: 's03Collapse', name: 'S3 — Collapse into cluster', duration: 70 },
   { id: 's04ToolList', name: 'S4 — Tool-list loop', duration: 1130 },
   { id: 's05WomanCard', name: 'S5 — Stressed-woman card', duration: 172 },
